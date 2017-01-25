@@ -4,29 +4,36 @@ namespace jugger\base;
 
 class Object
 {
-	public function __construct(array $config = []) {
+	public function __construct(array $config = [])
+	{
 		Configurator::setValues($this, $config);
 	}
 
-	public function __get($name) {
+	public function __get($name)
+	{
 		$method = "get".$name;
 		if (method_exists($this, $method)) {
 			return $this->$method();
 		}
+		elseif (method_exists($this, "set".$name)) {
+			throw new \ErrorException("Property '{$name}' is write-only");
+		}
 		else {
-			$class = get_called_class();
-			throw new \ErrorException("Property '{$name}' not found in '{$class}'");
+			throw new \ErrorException("Property '{$name}' not found");
 		}
 	}
 
-	public function __set($name, $value) {
+	public function __set($name, $value)
+	{
 		$method = "set".$name;
 		if (method_exists($this, $method)) {
 			$this->$method($value);
 		}
+		elseif (method_exists($this, "get".$name)) {
+			throw new \ErrorException("Property '{$name}' is read-only");
+		}
 		else {
-			$class = get_called_class();
-			throw new \ErrorException("Property '{$name}' not found in '{$class}'");
+			throw new \ErrorException("Property '{$name}' not found");
 		}
 	}
 }
