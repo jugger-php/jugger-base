@@ -2,40 +2,50 @@
 
 namespace jugger\base;
 
+/**
+ * @link http://www.php-fig.org/psr/psr-4/examples/
+ */
 class Autoloader
 {
 	protected $classMap = [];
-    protected $prefixes = array();
+	protected $prefixes = [];
 
-    public function register() {
+    public function register()
+	{
         spl_autoload_register(array($this, 'loadClass'));
     }
 
-	public function addClass($class, $file) {
+	public function addClass($class, $file)
+	{
 		$this->classMap[$class] = $file;
 	}
 
-	public function addClasses(array $classMap) {
+	public function addClasses(array $classMap)
+	{
 		foreach ($classMap as $class => $file) {
 			$this->addClass($class, $file);
 		}
 	}
 
-    public function addNamespace($prefix, $base_dir, $prepend = false) {
+    public function addNamespace($prefix, $baseDir, $prepend = false)
+	{
         $prefix = trim($prefix, '\\') . '\\';
-        $base_dir = rtrim($base_dir, DIRECTORY_SEPARATOR) . '/';
+        $baseDir = rtrim($baseDir, DIRECTORY_SEPARATOR) . '/';
         if (isset($this->prefixes[$prefix]) === false) {
             $this->prefixes[$prefix] = array();
         }
+
         if ($prepend) {
-            array_unshift($this->prefixes[$prefix], $base_dir);
-        } else {
-            array_push($this->prefixes[$prefix], $base_dir);
+            array_unshift($this->prefixes[$prefix], $baseDir);
+        }
+		else {
+            array_push($this->prefixes[$prefix], $baseDir);
         }
     }
 
-    public function loadClass($class) {
-		$file = isset($this->classMap[$class]) ? $this->classMap[$class] : false;
+    public function loadClass($class)
+	{
+		$file = $this->classMap[$class] ?? false;
 		if ($file && $this->requireFile($file)) {
 			return $file;
 		}
@@ -43,24 +53,25 @@ class Autoloader
         $prefix = $class;
         while (false !== $pos = strrpos($prefix, '\\')) {
             $prefix = substr($class, 0, $pos + 1);
-            $relative_class = substr($class, $pos + 1);
-            $mapped_file = $this->loadMappedFile($prefix, $relative_class);
+            $relativeClass = substr($class, $pos + 1);
+            $mappedFile = $this->loadMappedFile($prefix, $relativeClass);
 
-            if ($mapped_file) {
-                return $mapped_file;
+            if ($mappedFile) {
+                return $mappedFile;
             }
             $prefix = rtrim($prefix, '\\');
         }
         return false;
     }
 
-    protected function loadMappedFile($prefix, $relative_class) {
+    protected function loadMappedFile($prefix, $relativeClass)
+	{
         if (isset($this->prefixes[$prefix]) === false) {
             return false;
         }
-        foreach ($this->prefixes[$prefix] as $base_dir) {
-            $file = $base_dir
-                  . str_replace('\\', '/', $relative_class)
+        foreach ($this->prefixes[$prefix] as $baseDir) {
+            $file = $baseDir
+                  . str_replace('\\', '/', $relativeClass)
                   . '.php';
 
             if ($this->requireFile($file)) {
@@ -70,7 +81,8 @@ class Autoloader
         return false;
     }
 
-    protected function requireFile($file) {
+    protected function requireFile($file)
+	{
         if (file_exists($file)) {
             require $file;
             return true;
